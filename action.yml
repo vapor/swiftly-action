@@ -45,14 +45,14 @@ runs:
       name: Make sure Swiftly's deps are available
       shell: bash
       run: |
-        { which curl >/dev/null 2>&1 && which sudo >/dev/null 2>&1 ; } || {
+        which curl >/dev/null 2>&1 || {
           if [[ -n "$(which apt-get)" ]]; then
             apt-get update -q
-            apt-get install -qy curl sudo
+            apt-get install -qy curl
           elif [[ -n "$(which yum)" ]]; then
-            yum install -y curl sudo
+            yum install -y curl
           else
-            echo "curl and/or sudo are not installed and we couldn't figure out how to install them."
+            echo "curl is not installed and we couldn't figure out how to install it."
             exit 1
           fi
         }
@@ -60,16 +60,11 @@ runs:
     - id: swiftly-install
       name: Install Swiftly itself
       shell: bash
-      env:
-        SWIFTLY_HOME_DIR: /usr/share/swiftly
-        SWIFTLY_BIN_DIR: /usr/local/bin/swiftly
       run: |
         curl -L -o swiftly-install.sh https://swift-server.github.io/swiftly/swiftly-install.sh
         chmod a+x swiftly-install.sh
-        sudo env \
-          SWIFTLY_HOME_DIR="${SWIFTLY_HOME_DIR}" SWIFTLY_BIN_DIR="${SWIFTLY_BIN_DIR}"
-          ./swiftly-install.sh --disable-confirmation --no-modify-profile </dev/null
-        echo "${SWIFTLY_BIN_DIR}" >>"${GITHUB_PATH}"
+        ./swiftly-install.sh --disable-confirmation --no-modify-profile </dev/null
+        echo "${HOME}/.local/bin" >>"${GITHUB_PATH}"
 
     - id: toolchain-install
       name: Install requested Swift toolchain
