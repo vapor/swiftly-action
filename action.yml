@@ -64,6 +64,8 @@ runs:
         curl -L -o swiftly-install.sh https://swift-server.github.io/swiftly/swiftly-install.sh
         chmod a+x swiftly-install.sh
         ./swiftly-install.sh --disable-confirmation --no-modify-profile </dev/null
+        echo "SWIFTLY_HOME_DIR=${HOME}/.local/share/swiftly" >>"${GITHUB_ENV}"
+        echo "SWIFTLY_BIN_DIR=${HOME}/.local/bin" >>"${GITHUB_ENV}"
         echo "${HOME}/.local/bin" >>"${GITHUB_PATH}"
 
     - id: toolchain-install
