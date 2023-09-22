@@ -1,0 +1,29 @@
+name: test
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+on:
+  push: { branches: [ main ] }
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        base-image:
+          - ubuntu:focal
+          - ubuntu:jammy
+          - amazonlinux:2
+          - redhat/ubi9:latest
+        test-args:
+          - '{}'
+          - '{"toolchain":"latest"}'
+          - '{"toolchain":"5.9"}'
+    runs-on: ubuntu-latest
+    container: ${{ matrix.base-image }}
+    steps:
+      - name: Checkout self
+        uses: actions/checkout@v4
+      - name: Test
+        uses: vapor/swiftly-action@main
+        with: ${{ fromJSON(matrix.test-args) }}
