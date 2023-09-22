@@ -42,17 +42,17 @@ runs:
         esac
 
     - id: deps-install
-      name: Make sure Swiftly will be able to find curl
+      name: Make sure Swiftly's deps are available
       shell: bash
       run: |
-        which curl >/dev/null 2>&1 || {
+        { which curl >/dev/null 2>&1 && which sudo >/dev/null 2>&1 ; } || {
           if [[ -n "$(which apt-get)" ]]; then
             apt-get update -q
-            apt-get install -qy curl
+            apt-get install -qy curl sudo
           elif [[ -n "$(which yum)" ]]; then
-            yum install -y curl
+            yum install -y curl sudo
           else
-            echo "curl is not installed and we couldn't figure out how to install it."
+            echo "curl and/or sudo are not installed and we couldn't figure out how to install them."
             exit 1
           fi
         }
