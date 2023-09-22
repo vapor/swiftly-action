@@ -41,42 +41,42 @@ runs:
             ;;
         esac
 
-      - id: deps-install
-        name: Make sure Swiftly will be able to find curl
-        shell: bash
-        run: |
-          which curl >/dev/null 2>&1 || {
-            if [[ -n "$(which apt-get)" ]]; then
-              apt-get update -q
-              apt-get install -qy curl
-            elif [[ -n "$(which yum)" ]]; then
-              yum install -y curl
-            else
-              echo "curl is not installed and we couldn't figure out how to install it."
-              exit 1
-            fi
-          }
+    - id: deps-install
+      name: Make sure Swiftly will be able to find curl
+      shell: bash
+      run: |
+        which curl >/dev/null 2>&1 || {
+          if [[ -n "$(which apt-get)" ]]; then
+            apt-get update -q
+            apt-get install -qy curl
+          elif [[ -n "$(which yum)" ]]; then
+            yum install -y curl
+          else
+            echo "curl is not installed and we couldn't figure out how to install it."
+            exit 1
+          fi
+        }
 
-      - id: swiftly-install
-        name: Install Swiftly itself
-        shell: bash
-        env:
-          SWIFTLY_HOME_DIR: /usr/share/swiftly
-          SWIFTLY_BIN_DIR: /usr/local/bin/swiftly
-        run: |
-          curl -L -o swiftly-install.sh https://swift-server.github.io/swiftly/swiftly-install.sh
-          chmod a+x swiftly-install.sh
-          sudo env \
-            SWIFTLY_HOME_DIR="${SWIFTLY_HOME_DIR}" SWIFTLY_BIN_DIR="${SWIFTLY_BIN_DIR}"
-            ./swiftly-install.sh --disable-confirmation --no-modify-profile </dev/null
-          echo "${SWIFTLY_BIN_DIR}" >>"${GITHUB_PATH}"
+    - id: swiftly-install
+      name: Install Swiftly itself
+      shell: bash
+      env:
+        SWIFTLY_HOME_DIR: /usr/share/swiftly
+        SWIFTLY_BIN_DIR: /usr/local/bin/swiftly
+      run: |
+        curl -L -o swiftly-install.sh https://swift-server.github.io/swiftly/swiftly-install.sh
+        chmod a+x swiftly-install.sh
+        sudo env \
+          SWIFTLY_HOME_DIR="${SWIFTLY_HOME_DIR}" SWIFTLY_BIN_DIR="${SWIFTLY_BIN_DIR}"
+          ./swiftly-install.sh --disable-confirmation --no-modify-profile </dev/null
+        echo "${SWIFTLY_BIN_DIR}" >>"${GITHUB_PATH}"
 
-      - id: toolchain-install
-        name: Install requested Swift toolchain
-        if: ${{ inputs.toolchain != '' }}
-        shell: bash
-        env:
-          REQUESTED_TOOLCHAIN: ${{ inputs.toolchain }}
-        run: |
-          swiftly install "${REQUESTED_TOOLCHAIN}"
-          swiftly use "${REQUESTED_TOOLCHAIN}"
+    - id: toolchain-install
+      name: Install requested Swift toolchain
+      if: ${{ inputs.toolchain != '' }}
+      shell: bash
+      env:
+        REQUESTED_TOOLCHAIN: ${{ inputs.toolchain }}
+      run: |
+        swiftly install "${REQUESTED_TOOLCHAIN}"
+        swiftly use "${REQUESTED_TOOLCHAIN}"
