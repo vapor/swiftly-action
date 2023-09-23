@@ -45,11 +45,11 @@ runs:
       name: Make sure Swiftly's deps are available
       shell: bash
       run: |
-        which curl >/dev/null 2>&1 || {
-          if [[ -n "$(which apt-get)" ]]; then
+        command -v curl >/dev/null || {
+          if command -v apt-get >/dev/null; then
             apt-get update -q
             apt-get install -qy curl
-          elif [[ -n "$(which yum)" ]]; then
+          elif command -v yum >/dev/null; then
             yum install -y curl
           else
             echo "curl is not installed and we couldn't figure out how to install it."
