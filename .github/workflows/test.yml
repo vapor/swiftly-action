@@ -23,7 +23,11 @@ jobs:
     container: ${{ matrix.base-image }}
     steps:
       - name: Checkout self
+        if: ${{ !startsWith(matrix.base-image, 'amazonlinux') }}
         uses: actions/checkout@v4
+      - name: Checkout self
+        if: ${{ startsWith(matrix.base-image, 'amazonlinux') }}
+        uses: actions/checkout@v3
       - name: Test
         uses: vapor/swiftly-action@main
         with: ${{ fromJSON(matrix.test-args) }}
