@@ -42,7 +42,7 @@ jobs:
       - name: Add missing dependencies
         run: yum install -y git tar
       - name: Checkout self
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Test
         uses: vapor/swiftly-action@main
         with: ${{ fromJSON(matrix.test-args) }}
