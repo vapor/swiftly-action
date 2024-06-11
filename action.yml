@@ -61,7 +61,7 @@ runs:
       name: Install Swiftly itself
       shell: bash
       run: |
-        curl -L -o swiftly-install.sh https://swift-server.github.io/swiftly/swiftly-install.sh
+        curl -L -o swiftly-install.sh https://swiftlang.github.io/swiftly/swiftly-install.sh
         chmod a+x swiftly-install.sh
         ./swiftly-install.sh --disable-confirmation --no-modify-profile </dev/null
         echo "SWIFTLY_HOME_DIR=${HOME}/.local/share/swiftly" >>"${GITHUB_ENV}"
