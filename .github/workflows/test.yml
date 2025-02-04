@@ -17,7 +17,7 @@ jobs:
         test-args:
           - '{}'
           - '{"toolchain":"latest"}'
-          - '{"toolchain":"5.9"}'
+          - '{"toolchain":"5.0"}'
     runs-on: ubuntu-latest
     container: ${{ matrix.base-image }}
     steps:
@@ -35,14 +35,14 @@ jobs:
         test-args:
           - '{}'
           - '{"toolchain":"latest"}'
-          - '{"toolchain":"5.9"}'
+          - '{"toolchain":"5.0"}'
     runs-on: ubuntu-latest
     container: ${{ matrix.base-image }}
     steps:
       - name: Add missing dependencies
         run: yum install -y git tar
       - name: Checkout self
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Test
         uses: vapor/swiftly-action@main
         with: ${{ fromJSON(matrix.test-args) }}
