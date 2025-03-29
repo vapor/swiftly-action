@@ -26,8 +26,8 @@ runs:
             ;;
         esac
 
-    - id: curl-install
-      name: Make sure curl is available
+    - id: deps-install
+      name: Make sure curl and gpg are available
       shell: bash
       run: |
         command -v curl >/dev/null || {
@@ -37,6 +37,16 @@ runs:
             yum install -y curl
           else
             echo "curl is not installed and we couldn't figure out how to install it."
+            exit 1
+          fi
+        }
+        command -v gpg >/dev/null || {
+          if command -v apt-get >/dev/null; then
+            apt-get update -q && apt-get install -qy gpg
+          elif command -v yum >/dev/null; then
+            yum install -y gpg
+          else
+            echo "gpg is not installed and we couldn't figure out how to install it."
             exit 1
           fi
         }
@@ -64,4 +74,8 @@ runs:
       env:
         REQUESTED_TOOLCHAIN: ${{ inputs.toolchain }}
       run: |
-        swiftly install --assume-yes --use  "${REQUESTED_TOOLCHAIN}"
+        swiftly install --assume-yes --use --post-install-file "${HOME}/.swiftly-postinstall-cmds.sh" "${REQUESTED_TOOLCHAIN}"
+        if [[ -f "${HOME}/.swiftly-postinstall-cmds.sh" ]]; then
+          . "${HOME}/.swiftly-postinstall-cmds.sh"
+          rm "${HOME}/.swiftly-postinstall-cmds.sh"
+        fi
