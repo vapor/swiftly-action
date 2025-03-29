@@ -76,6 +76,7 @@ runs:
       run: |
         swiftly install --assume-yes --use --post-install-file "${HOME}/.swiftly-postinstall-cmds.sh" "${REQUESTED_TOOLCHAIN}"
         if [[ -f "${HOME}/.swiftly-postinstall-cmds.sh" ]]; then
+          export DEBIAN_FRONTEND=noninteractive # prevent Debian/Ubuntu installs from hanging on tzdata
           . "${HOME}/.swiftly-postinstall-cmds.sh"
           rm "${HOME}/.swiftly-postinstall-cmds.sh"
         fi
