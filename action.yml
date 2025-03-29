@@ -7,48 +7,32 @@ inputs:
     default: ''
     description: >
       A Swift toolchain version to install and select as the default. If omitted, Swiftly will be installed by itself.
-      See https://github.com/swift-server/swiftly/blob/main/README.md#installing-a-toolchain for a description of how
-      to specify a toolchain version.
-  #TODO: This is not yet possible to implement without duplicating most if not all of Swiftly's installation script.
-  #tool-version:
-  #  required: false
-  #  default: 'latest'
-  #  description: >
-  #    Specifies a version of Swiftly to install as a git tag. The default, 'latest', will always install the most recent
-  #    released version. The value 'HEAD" will install Swiftly from the 'main' branch (use with caution; the head version
-  #    is not guaranteed to be stable or even functional).
+      See https://swiftpackageindex.com/swiftlang/swiftly/1.0.0/documentation/swiftlydocs/install-toolchains for a description
+      of how to specify a toolchain version.
 
 runs:
   using: composite
   steps:
-    # N.B.: Swiftly also checks the OS, but its error message at the time of this writing is less than helpful.
     - id: platform-check
-      name: Check that the current runner platform is supported
+      name: Check that the current platform is supported
       shell: bash
-      env:
-        RUNNER_OS: ${{ runner.os }}
       run: |
-        case "${RUNNER_OS}" in
-          'Linux')
-            ;;
+        case '${{ runner.os }}' in
           'Windows')
             echo 'Swiftly does not yet support Windows.'
             exit 1
             ;;
-          'macOS')
-            echo 'Swiftly does not yet support macOS.'
-            exit 1
+          *)
             ;;
         esac
 
-    - id: deps-install
-      name: Make sure Swiftly's deps are available
+    - id: curl-install
+      name: Make sure curl is available
       shell: bash
       run: |
         command -v curl >/dev/null || {
           if command -v apt-get >/dev/null; then
-            apt-get update -q
-            apt-get install -qy curl
+            apt-get update -q && apt-get install -qy curl
           elif command -v yum >/dev/null; then
             yum install -y curl
           else
@@ -58,15 +42,13 @@ runs:
         }
 
     - id: swiftly-install
-      name: Install Swiftly itself
+      name: Download and initialize Swiftly
       shell: bash
       run: |
-        curl -L -o swiftly-install.sh https://swiftlang.github.io/swiftly/swiftly-install.sh
-        chmod a+x swiftly-install.sh
-        ./swiftly-install.sh --disable-confirmation --no-modify-profile </dev/null
-        echo "SWIFTLY_HOME_DIR=${HOME}/.local/share/swiftly" >>"${GITHUB_ENV}"
-        echo "SWIFTLY_BIN_DIR=${HOME}/.local/bin" >>"${GITHUB_ENV}"
-        echo "${HOME}/.local/bin" >>"${GITHUB_PATH}"
+        curl -O "https://download.swift.org/swiftly/linux/swiftly-$(uname -m).tar.gz"
+        tar zxf "swiftly-$(uname -m).tar.gz"
+        ./swiftly init --assume-yes --no-modify-profile --skip-install --quiet-shell-followup
+        . ~/.local/share/swiftly/env.sh
 
     - id: toolchain-install
       name: Install requested Swift toolchain
@@ -75,5 +57,4 @@ runs:
       env:
         REQUESTED_TOOLCHAIN: ${{ inputs.toolchain }}
       run: |
-        swiftly install "${REQUESTED_TOOLCHAIN}"
-        swiftly use "${REQUESTED_TOOLCHAIN}"
+        swiftly install --assume-yes --use  "${REQUESTED_TOOLCHAIN}"
