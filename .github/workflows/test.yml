@@ -13,10 +13,14 @@ jobs:
         base-image:
           - ubuntu:focal
           - ubuntu:jammy
+          - ubuntu:noble
+          - debian:bookworm
+          - fedora:39
           - redhat/ubi9:latest
         test-args:
           - '{}'
           - '{"toolchain":"latest"}'
+          - '{"toolchain":"5.10"}'
           - '{"toolchain":"6.0"}'
     runs-on: ubuntu-latest
     container: ${{ matrix.base-image }}
@@ -33,6 +37,7 @@ jobs:
         test-args:
           - '{}'
           - '{"toolchain":"latest"}'
+          - '{"toolchain":"5.10"}'
           - '{"toolchain":"6.0"}'
     runs-on: ubuntu-latest
     container: ${{ matrix.base-image }}
@@ -42,4 +47,17 @@ jobs:
       - name: Test
         uses: vapor/swiftly-action@main
         with: ${{ fromJSON(matrix.test-args) }}
-
+  test-barerunner:
+    strategy:
+      fail-fast: false
+      matrix:
+        test-args:
+          - '{}'
+          - '{"toolchain":"latest"}'
+          - '{"toolchain":"5.10"}'
+          - '{"toolchain":"6.0"}'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test
+        uses: vapor/swiftly-action@main
+        with: ${{ fromJSON(matrix.test-args) }}
