@@ -48,7 +48,11 @@ runs:
         curl -O "https://download.swift.org/swiftly/linux/swiftly-$(uname -m).tar.gz"
         tar zxf "swiftly-$(uname -m).tar.gz"
         ./swiftly init --assume-yes --no-modify-profile --skip-install --quiet-shell-followup
-        . ~/.local/share/swiftly/env.sh
+        if [[ "$(id -un)" == 'root' ]]; then
+          . /root/.local/share/swiftly/env.sh
+        else
+          . "/home/${USER}/.local/share/swiftly/env.sh"
+        fi
 
     - id: toolchain-install
       name: Install requested Swift toolchain
