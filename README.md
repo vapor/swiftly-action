@@ -9,7 +9,7 @@ To use Swiftly in your workflow, specify the repository followed by a tag as wit
 ```yaml
 steps:
   - uses: actions/checkout@v4
-  - uses: vapor/swiftly-action@v0.1
+  - uses: vapor/swiftly-action@v0.2.0
     with:
       toolchain: latest # optional
 ```
