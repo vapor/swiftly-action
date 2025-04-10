@@ -15,7 +15,7 @@ runs:
   steps:
     - id: platform-check
       name: Check that the current platform is supported
-      shell: bash
+      shell: sh
       run: |
         case '${{ runner.os }}' in
           'Windows')
@@ -28,13 +28,15 @@ runs:
 
     - id: deps-install
       name: Make sure curl and gpg are available
-      shell: bash
+      shell: sh
       run: |
         command -v curl >/dev/null || {
           if command -v apt-get >/dev/null; then
             apt-get update -q && apt-get install -qy curl
           elif command -v yum >/dev/null; then
             yum install -y curl
+          elif command -v apk >/dev/null; then
+            apk add --no-cache curl
           else
             echo "curl is not installed and we couldn't figure out how to install it."
             exit 1
@@ -45,6 +47,8 @@ runs:
             apt-get update -q && apt-get install -qy gpg
           elif command -v yum >/dev/null; then
             yum install -y gpg
+          elif command -v apk >/dev/null; then
+            apk add --no-cache gnupg
           else
             echo "gpg is not installed and we couldn't figure out how to install it."
             exit 1
@@ -53,12 +57,12 @@ runs:
 
     - id: swiftly-install
       name: Download and initialize Swiftly
-      shell: bash
+      shell: sh
       run: |
         curl -O "https://download.swift.org/swiftly/linux/swiftly-$(uname -m).tar.gz"
         tar zxf "swiftly-$(uname -m).tar.gz"
         ./swiftly init --assume-yes --no-modify-profile --skip-install --quiet-shell-followup
-        if [[ "$(id -un)" == 'root' ]]; then
+        if [ "$(id -un)" = 'root' ]; then
           . /root/.local/share/swiftly/env.sh
         else
           . "/home/${USER}/.local/share/swiftly/env.sh"
@@ -70,17 +74,17 @@ runs:
     - id: toolchain-install
       name: Install requested Swift toolchain
       if: ${{ inputs.toolchain != '' }}
-      shell: bash
+      shell: sh
       env:
         REQUESTED_TOOLCHAIN: ${{ inputs.toolchain }}
       run: |
         swiftly install --assume-yes --use --post-install-file "${HOME}/.swiftly-postinstall-cmds.sh" "${REQUESTED_TOOLCHAIN}"
-        if [[ -f "${HOME}/.swiftly-postinstall-cmds.sh" ]]; then
+        if [ -f "${HOME}/.swiftly-postinstall-cmds.sh" ]; then
           export DEBIAN_FRONTEND=noninteractive # prevent Debian/Ubuntu installs from hanging on tzdata
-          if [[ "$(id -un)" == 'root' ]]; then
+          if [ "$(id -un)" = 'root' ]; then
             . "${HOME}/.swiftly-postinstall-cmds.sh"
           else
-            sudo bash -c ". '${HOME}/.swiftly-postinstall-cmds.sh'" # use the current value of HOME rather than the subshell's value
+            sudo sh -c ". '${HOME}/.swiftly-postinstall-cmds.sh'" # use the current value of HOME rather than the subshell's value
           fi
           rm "${HOME}/.swiftly-postinstall-cmds.sh"
         fi
