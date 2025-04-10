@@ -1,6 +1,6 @@
 # swiftly-action
 
-A GitHub Action for installing the [Swiftly toolchain manager for Swift](https://swift-server.github.io/swiftly/).
+A GitHub Action for installing the [Swiftly toolchain manager for Swift](https://www.swift.org/swiftly).
 
 ## Usage
 
