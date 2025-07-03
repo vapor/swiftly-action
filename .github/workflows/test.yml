@@ -26,8 +26,12 @@ jobs:
     runs-on: ubuntu-latest
     container: ${{ matrix.base-image }}
     steps:
+      - name: Checkout action
+        uses: actions/checkout@v4
+        with:
+          path: ./swiftly-action
       - name: Test
-        uses: vapor/swiftly-action@main
+        uses: ./swiftly-action
         with: ${{ fromJSON(matrix.test-args) }}
   test-amznlinux2:
     strategy:
@@ -45,8 +49,12 @@ jobs:
     steps:
       - name: Add missing dependencies
         run: yum install -y git tar
+      - name: Checkout action
+        uses: actions/checkout@v4
+        with:
+          path: ./swiftly-action
       - name: Test
-        uses: vapor/swiftly-action@main
+        uses: ./swiftly-action
         with: ${{ fromJSON(matrix.test-args) }}
   test-barerunner:
     strategy:
@@ -62,6 +70,10 @@ jobs:
           - '{"toolchain":"6.0"}'
     runs-on: ${{ matrix.runner-os }}
     steps:
+      - name: Checkout action
+        uses: actions/checkout@v4
+        with:
+          path: ./swiftly-action
       - name: Test
-        uses: vapor/swiftly-action@main
+        uses: ./swiftly-action
         with: ${{ fromJSON(matrix.test-args) }}
