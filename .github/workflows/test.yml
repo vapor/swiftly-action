@@ -3,7 +3,7 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 on:
-  push: { branches: [ main ] }
+  push: { branches: [main] }
   pull_request: { types: [opened, reopened, synchronize, ready_for_review] }
 
 jobs:
@@ -52,12 +52,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        runner-os:
+          - ubuntu-latest
+          - macos-latest
         test-args:
           - '{}'
           - '{"toolchain":"latest"}'
           - '{"toolchain":"5.10"}'
           - '{"toolchain":"6.0"}'
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runner-os }}
     steps:
       - name: Test
         uses: vapor/swiftly-action@main
