@@ -35,6 +35,8 @@ runs:
             apt-get update -q && apt-get install -qy curl
           elif command -v yum >/dev/null; then
             yum install -y curl
+          elif command -v brew >/dev/null; then
+            brew install curl
           else
             echo "curl is not installed and we couldn't figure out how to install it."
             exit 1
@@ -45,6 +47,8 @@ runs:
             apt-get update -q && apt-get install -qy gpg
           elif command -v yum >/dev/null; then
             yum install -y gpg
+          elif command -v brew >/dev/null; then
+            brew install gpg
           else
             echo "gpg is not installed and we couldn't figure out how to install it."
             exit 1
@@ -54,19 +58,36 @@ runs:
     - id: swiftly-install
       name: Download and initialize Swiftly
       shell: bash
+      env:
+        RUNNER_OS: ${{ runner.os }}
       run: |
-        curl -O "https://download.swift.org/swiftly/linux/swiftly-$(uname -m).tar.gz"
-        tar zxf "swiftly-$(uname -m).tar.gz"
-        ./swiftly init --assume-yes --no-modify-profile --skip-install --quiet-shell-followup
-        if [[ "$(id -un)" == 'root' ]]; then
-          . /root/.local/share/swiftly/env.sh
+        if [[ "${RUNNER_OS}" == 'Linux' ]]; then
+          curl -O "https://download.swift.org/swiftly/linux/swiftly-$(uname -m).tar.gz"
+          tar zxf "swiftly-$(uname -m).tar.gz"
+          SWIFTLY_BIN_PATH="$(pwd)/swiftly"
+          if [[ "$(id -un)" == 'root' ]]; then
+            # There seems to be an issue when running the action inside a container where GitHub sets `HOME` on the container,
+            # but that change seems to be ignored by Swiftly.
+            SWIFTLY_ENV_BASE_PATH='/root'
+          else
+            SWIFTLY_ENV_BASE_PATH="${HOME}"
+          fi
+          SWIFTLY_ENV_PATH="${SWIFTLY_ENV_BASE_PATH}/.local/share/swiftly/env.sh"
+        elif [[ "${RUNNER_OS}" == 'macOS' ]]; then
+          curl -O 'https://download.swift.org/swiftly/darwin/swiftly.pkg'
+          installer -pkg swiftly.pkg -target CurrentUserHomeDirectory
+          SWIFTLY_BIN_PATH="${HOME}/.swiftly/bin/swiftly" # The docs are incorrect (they mention ~/local/bin/swiftly)
+          SWIFTLY_ENV_PATH="${HOME}/.swiftly/env.sh"
         else
-          . "/home/${USER}/.local/share/swiftly/env.sh"
+          echo "Unsupported OS: ${RUNNER_OS}"
+          exit 1
         fi
+        "${SWIFTLY_BIN_PATH}" init --assume-yes --no-modify-profile --skip-install --quiet-shell-followup
+        . "${SWIFTLY_ENV_PATH}"
         echo "SWIFTLY_HOME_DIR=${SWIFTLY_HOME_DIR}" >>"${GITHUB_ENV}"
         echo "SWIFTLY_BIN_DIR=${SWIFTLY_BIN_DIR}" >>"${GITHUB_ENV}"
         echo "${SWIFTLY_BIN_DIR}" >>"${GITHUB_PATH}"
- 
+
     - id: toolchain-install
       name: Install requested Swift toolchain
       if: ${{ inputs.toolchain != '' }}
@@ -74,13 +95,14 @@ runs:
       env:
         REQUESTED_TOOLCHAIN: ${{ inputs.toolchain }}
       run: |
-        swiftly install --assume-yes --use --post-install-file "${HOME}/.swiftly-postinstall-cmds.sh" "${REQUESTED_TOOLCHAIN}"
-        if [[ -f "${HOME}/.swiftly-postinstall-cmds.sh" ]]; then
+        POST_INSTALL_FILE="${HOME}/.swiftly-postinstall-cmds.sh"
+        swiftly install --assume-yes --use --post-install-file "${POST_INSTALL_FILE}" "${REQUESTED_TOOLCHAIN}"
+        if [[ -f "${POST_INSTALL_FILE}" ]]; then
           export DEBIAN_FRONTEND=noninteractive # prevent Debian/Ubuntu installs from hanging on tzdata
           if [[ "$(id -un)" == 'root' ]]; then
-            . "${HOME}/.swiftly-postinstall-cmds.sh"
+            . "${POST_INSTALL_FILE}"
           else
-            sudo bash -c ". '${HOME}/.swiftly-postinstall-cmds.sh'" # use the current value of HOME rather than the subshell's value
+            sudo bash -c ". '${POST_INSTALL_FILE}'"
           fi
-          rm "${HOME}/.swiftly-postinstall-cmds.sh"
+          rm "${POST_INSTALL_FILE}"
         fi
