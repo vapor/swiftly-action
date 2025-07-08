@@ -49,12 +49,14 @@ jobs:
     steps:
       - name: Add missing dependencies
         run: yum install -y git tar
-      - name: Checkout action
-        uses: actions/checkout@v4
-        with:
-          path: ./swiftly-action
+      # FIXME: This doesn't work in the container, since amazonlinux:2 ships with a version of glibc that's too old for GitHub's Node20.
+      # - name: Checkout action
+      #   uses: actions/checkout@v4
+      #   with:
+      #     path: ./swiftly-action
       - name: Test
-        uses: ./swiftly-action
+        # uses: ./swiftly-action
+        uses: vapor/swiftly-action@main
         with: ${{ fromJSON(matrix.test-args) }}
   test-barerunner:
     strategy:
