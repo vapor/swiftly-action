@@ -88,13 +88,14 @@ runs:
       env:
         REQUESTED_TOOLCHAIN: ${{ inputs.toolchain }}
       run: |
-        swiftly install --assume-yes --use --post-install-file "${HOME}/.swiftly-postinstall-cmds.sh" "${REQUESTED_TOOLCHAIN}"
-        if [[ -f "${HOME}/.swiftly-postinstall-cmds.sh" ]]; then
+        POST_INSTALL_FILE="${HOME}/.swiftly-postinstall-cmds.sh"
+        swiftly install --assume-yes --use --post-install-file "${POST_INSTALL_FILE}" "${REQUESTED_TOOLCHAIN}"
+        if [[ -f "${POST_INSTALL_FILE}" ]]; then
           export DEBIAN_FRONTEND=noninteractive # prevent Debian/Ubuntu installs from hanging on tzdata
           if [[ "$(id -un)" == 'root' ]]; then
-            . "${HOME}/.swiftly-postinstall-cmds.sh"
+            . "${POST_INSTALL_FILE}"
           else
-            sudo bash -c ". '${HOME}/.swiftly-postinstall-cmds.sh'" # use the current value of HOME rather than the subshell's value
+            sudo bash -c ". '${POST_INSTALL_FILE}'"
           fi
-          rm "${HOME}/.swiftly-postinstall-cmds.sh"
+          rm "${POST_INSTALL_FILE}"
         fi
