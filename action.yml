@@ -65,7 +65,14 @@ runs:
           curl -O "https://download.swift.org/swiftly/linux/swiftly-$(uname -m).tar.gz"
           tar zxf "swiftly-$(uname -m).tar.gz"
           SWIFTLY_BIN_PATH="$(pwd)/swiftly"
-          SWIFTLY_ENV_PATH="${HOME}/.local/share/swiftly/env.sh"
+          if [[ "$(id -un)" == 'root' ]]; then
+            # There seems to be an issue when running the action inside a container where GitHub sets `HOME` on the container,
+            # but that change seems to be ignored by Swiftly.
+            SWIFTLY_ENV_BASE_PATH='/root'
+          else
+            SWIFTLY_ENV_BASE_PATH="${HOME}"
+          fi
+          SWIFTLY_ENV_PATH="${SWIFTLY_ENV_BASE_PATH}/.local/share/swiftly/env.sh"
         elif [[ "${RUNNER_OS}" == 'macOS' ]]; then
           curl -O 'https://download.swift.org/swiftly/darwin/swiftly.pkg'
           installer -pkg swiftly.pkg -target CurrentUserHomeDirectory
