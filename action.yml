@@ -42,7 +42,7 @@ runs:
           ${SUDO} ${CMD} --refresh mc
         elif command -v yum >/dev/null; then
           CMD='yum -y'
-          ${SUDO} ${CMD} --refresh mc
+          ${SUDO} ${CMD} makecache
         else
           echo "Couldn't figure out how to run the system package manager."
           exit 1
