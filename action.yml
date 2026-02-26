@@ -27,28 +27,32 @@ runs:
         esac
 
     - id: deps-install
-      name: Make sure curl and gpg are available
+      name: Update package manager and make sure curl and gpg are available
       shell: bash
       run: |
+        if [[ "$(id -un)" != 'root' ]]; then
+          SUDO=sudo
+        fi
+        if command -v apt-get >/dev/null; then
+          # use DEBIAN_FRONTEND to prevent Debian/Ubuntu installs from hanging on tzdata
+          CMD='DEBIAN_FRONTEND=noninteractive apt-get -qy'
+          ${SUDO} bash -c "${CMD} update"
+        elif command -v dnf >/dev/null; then
+          CMD='dnf -y'
+          ${SUDO} ${CMD} --refresh mc
+        elif command -v yum >/dev/null; then
+          CMD='yum -y'
+          ${SUDO} ${CMD} --refresh mc
+        else
+          echo "Couldn't figure out how to run the system package manager."
+          exit 1
+        fi
+        
         command -v curl >/dev/null || {
-          if command -v apt-get >/dev/null; then
-            apt-get update -q && apt-get install -qy curl
-          elif command -v yum >/dev/null; then
-            yum install -y curl
-          else
-            echo "curl is not installed and we couldn't figure out how to install it."
-            exit 1
-          fi
+          ${SUDO} ${CMD} install curl
         }
         command -v gpg >/dev/null || {
-          if command -v apt-get >/dev/null; then
-            apt-get update -q && apt-get install -qy gpg
-          elif command -v yum >/dev/null; then
-            yum install -y gpg
-          else
-            echo "gpg is not installed and we couldn't figure out how to install it."
-            exit 1
-          fi
+          ${SUDO} ${CMD} install gpg
         }
 
     - id: swiftly-install
@@ -76,11 +80,10 @@ runs:
       run: |
         swiftly install --assume-yes --use --post-install-file "${HOME}/.swiftly-postinstall-cmds.sh" "${REQUESTED_TOOLCHAIN}"
         if [[ -f "${HOME}/.swiftly-postinstall-cmds.sh" ]]; then
-          export DEBIAN_FRONTEND=noninteractive # prevent Debian/Ubuntu installs from hanging on tzdata
           if [[ "$(id -un)" == 'root' ]]; then
-            . "${HOME}/.swiftly-postinstall-cmds.sh"
+            DEBIAN_FRONTEND=noninteractive . "${HOME}/.swiftly-postinstall-cmds.sh"
           else
-            sudo bash -c ". '${HOME}/.swiftly-postinstall-cmds.sh'" # use the current value of HOME rather than the subshell's value
+            sudo bash -c "DEBIAN_FRONTEND=noninteractive . '${HOME}/.swiftly-postinstall-cmds.sh'" # use the current value of HOME rather than the subshell's value
           fi
           rm "${HOME}/.swiftly-postinstall-cmds.sh"
         fi
