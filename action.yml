@@ -35,8 +35,8 @@ runs:
         fi
         if command -v apt-get >/dev/null; then
           # use DEBIAN_FRONTEND to prevent Debian/Ubuntu installs from hanging on tzdata
-          CMD='DEBIAN_FRONTEND=noninteractive apt-get -qy'
-          ${SUDO} bash -c "${CMD} update"
+          CMD='env DEBIAN_FRONTEND=noninteractive apt-get -qy'
+          ${SUDO} ${CMD} update
         elif command -v dnf >/dev/null; then
           CMD='dnf -y'
           ${SUDO} ${CMD} --refresh mc
@@ -81,9 +81,9 @@ runs:
         swiftly install --assume-yes --use --post-install-file "${HOME}/.swiftly-postinstall-cmds.sh" "${REQUESTED_TOOLCHAIN}"
         if [[ -f "${HOME}/.swiftly-postinstall-cmds.sh" ]]; then
           if [[ "$(id -un)" == 'root' ]]; then
-            DEBIAN_FRONTEND=noninteractive . "${HOME}/.swiftly-postinstall-cmds.sh"
+            env DEBIAN_FRONTEND=noninteractive bash "${HOME}/.swiftly-postinstall-cmds.sh"
           else
-            sudo bash -c "DEBIAN_FRONTEND=noninteractive . '${HOME}/.swiftly-postinstall-cmds.sh'" # use the current value of HOME rather than the subshell's value
+            sudo env DEBIAN_FRONTEND=noninteractive bash "${HOME}/.swiftly-postinstall-cmds.sh" # use the current value of HOME, not root's
           fi
           rm "${HOME}/.swiftly-postinstall-cmds.sh"
         fi
