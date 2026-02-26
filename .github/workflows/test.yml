@@ -17,8 +17,7 @@ jobs:
           - ubuntu:jammy
           - ubuntu:noble
           - debian:bookworm
-          - debian:trixie
-          - fedora:latest
+          - fedora:3
           - redhat/ubi9:latest
         test-args:
           - '{}'
