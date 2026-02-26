@@ -5,6 +5,8 @@ concurrency:
 on:
   push: { branches: [ main ] }
   pull_request: { types: [opened, reopened, synchronize, ready_for_review] }
+permissions:
+  contents: read
 
 jobs:
   test:
@@ -12,17 +14,17 @@ jobs:
       fail-fast: false
       matrix:
         base-image:
-          - ubuntu:focal
           - ubuntu:jammy
           - ubuntu:noble
           - debian:bookworm
-          - fedora:39
+          - debian:trixie
+          - fedora:latest
           - redhat/ubi9:latest
         test-args:
           - '{}'
           - '{"toolchain":"latest"}'
-          - '{"toolchain":"5.10"}'
           - '{"toolchain":"6.0"}'
+          - '{"toolchain":"6.1"}'
     runs-on: ubuntu-latest
     container: ${{ matrix.base-image }}
     steps:
@@ -38,8 +40,8 @@ jobs:
         test-args:
           - '{}'
           - '{"toolchain":"latest"}'
-          - '{"toolchain":"5.10"}'
           - '{"toolchain":"6.0"}'
+          - '{"toolchain":"6.1"}'
     runs-on: ubuntu-latest
     container: ${{ matrix.base-image }}
     steps:
@@ -55,8 +57,8 @@ jobs:
         test-args:
           - '{}'
           - '{"toolchain":"latest"}'
-          - '{"toolchain":"5.10"}'
           - '{"toolchain":"6.0"}'
+          - '{"toolchain":"6.1"}'
     runs-on: ubuntu-latest
     steps:
       - name: Test
